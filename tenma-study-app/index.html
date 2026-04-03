@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>天満中 1年生 勉強アプリ</title>
+<script src="q-math.js"></script>
+<script src="q-english.js"></script>
+<script src="q-japanese.js"></script>
+<script src="q-science.js"></script>
+<script src="q-social.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;color:#fff;display:flex;justify-content:center;padding:16px}
+.app{width:100%;max-width:480px}
+.header{text-align:center;padding:24px 0 16px}
+.header .school{font-size:12px;color:#d4af37;letter-spacing:3px;margin-bottom:4px}
+.header h1{font-size:24px;background:linear-gradient(135deg,#d4af37,#ff9ff3,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:bold}
+.header .sub{font-size:11px;color:#a29bfe;margin-top:4px}
+
+/* 教科グリッド */
+.subject-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.sbtn{background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.3);border-radius:16px;padding:20px 12px;text-align:center;cursor:pointer;transition:all .2s;color:#fff}
+.sbtn:hover{background:rgba(212,175,55,.15);border-color:#d4af37;transform:translateY(-2px)}
+.sbtn .icon{font-size:32px;display:block;margin-bottom:6px}
+.sbtn .name{font-size:15px;font-weight:bold}
+.sbtn .desc{font-size:10px;color:#a29bfe;margin-top:3px}
+.sbtn.all-btn{grid-column:1/-1;background:linear-gradient(135deg,rgba(212,175,55,.2),rgba(162,155,254,.2));border-color:#d4af37}
+
+/* 設定パネル */
+.settings{margin-top:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px}
+.settings h3{font-size:12px;color:#a29bfe;margin-bottom:10px;text-align:center}
+.btn-row{display:flex;gap:8px;margin-bottom:8px}
+.tbtn{flex:1;padding:9px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;cursor:pointer;text-align:center;font-size:12px;transition:all .2s}
+.tbtn.active{background:rgba(212,175,55,.25);border-color:#d4af37;color:#d4af37;font-weight:bold}
+
+/* クイズ画面 */
+.screen{display:none}
+.quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.back-btn{background:rgba(255,255,255,.1);border:none;color:#fff;padding:7px 13px;border-radius:18px;cursor:pointer;font-size:12px}
+.prog{font-size:12px;color:#a29bfe}
+.timer-bar{height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-bottom:16px;overflow:hidden}
+.timer-fill{height:100%;background:linear-gradient(90deg,#d4af37,#ff9ff3);border-radius:2px}
+.badge{display:inline-block;padding:3px 12px;border-radius:16px;font-size:11px;font-weight:bold;margin-bottom:12px}
+.qcard{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:20px;margin-bottom:14px}
+.qnum{font-size:11px;color:#d4af37;margin-bottom:6px}
+.qtext{font-size:17px;line-height:1.7;font-weight:bold;white-space:pre-line}
+.qhint{font-size:12px;color:#a29bfe;margin-top:8px}
+.choices{display:flex;flex-direction:column;gap:9px}
+.cbtn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:13px;padding:13px 16px;color:#fff;font-size:15px;cursor:pointer;text-align:left;transition:all .2s}
+.cbtn:hover{background:rgba(162,155,254,.15);border-color:#a29bfe}
+.cbtn.correct{background:rgba(0,200,100,.2);border-color:#00c864;color:#00e87a}
+.cbtn.wrong{background:rgba(255,80,80,.2);border-color:#ff5050;color:#ff8080}
+.cbtn.show-ok{background:rgba(0,200,100,.12);border-color:#00c864}
+.cbtn:disabled{cursor:default}
+.result-box{display:none;background:rgba(255,255,255,.05);border-radius:14px;padding:14px;margin-top:12px}
+.result-box.show{display:block}
+.rlabel{font-size:20px;font-weight:bold;margin-bottom:6px}
+.rlabel.ok{color:#00e87a}
+.rlabel.ng{color:#ff8080}
+.expl{font-size:13px;line-height:1.6;color:#ddd}
+.esbox{display:none;background:rgba(212,175,55,.13);border:2px solid rgba(212,175,55,.5);border-radius:12px;padding:12px 14px;margin-top:10px}
+.esbox.show{display:block}
+.estitle{font-size:13px;font-weight:bold;color:#d4af37;margin-bottom:5px}
+.estext{font-size:16px;line-height:1.9;color:#fff}
+.next-btn{width:100%;margin-top:14px;padding:14px;background:linear-gradient(135deg,#d4af37,#b8960c);border:none;border-radius:13px;color:#1a1a2e;font-size:16px;font-weight:bold;cursor:pointer;display:none}
+.next-btn.show{display:block}
+
+/* 結果画面 */
+.rcard{background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.3);border-radius:22px;padding:32px 20px;text-align:center;margin-top:8px}
+.score-circle{width:130px;height:130px;border-radius:50%;border:4px solid #d4af37;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 20px;background:radial-gradient(circle,rgba(212,175,55,.1),transparent)}
+.snum{font-size:44px;font-weight:bold;color:#d4af37;line-height:1}
+.sdenom{font-size:14px;color:#a29bfe}
+.spct{font-size:18px;color:#fff;margin-top:3px}
+.rmsg{font-size:19px;margin-bottom:6px}
+.rsub{font-size:13px;color:#a29bfe;margin-bottom:24px;line-height:1.7;white-space:pre-line}
+.rbtn{width:100%;padding:14px;border:none;border-radius:13px;font-size:15px;font-weight:bold;cursor:pointer;margin-bottom:10px}
+.rbtn.restart{background:linear-gradient(135deg,#a29bfe,#6c5ce7);color:#fff}
+.rbtn.home{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff}
+
+/* バッジカラー */
+.math{background:rgba(255,159,67,.2);color:#ff9f43;border-color:#ff9f43}
+.english{background:rgba(84,160,255,.2);color:#54a0ff;border-color:#54a0ff}
+.japanese{background:rgba(255,107,107,.2);color:#ff6b6b;border-color:#ff6b6b}
+.science{background:rgba(29,209,161,.2);color:#1dd1a1;border-color:#1dd1a1}
+.social{background:rgba(255,159,243,.2);color:#ff9ff3;border-color:#ff9ff3}
+.all-c{background:rgba(212,175,55,.2);color:#d4af37;border-color:#d4af37}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ホーム -->
+<div id="home" class="screen" style="display:block">
+  <div class="header">
+    <div class="school">大阪市立天満中学校</div>
+    <h1>✨ 1年生 勉強アプリ ✨</h1>
+    <div class="sub">中学1年生 · 全教科対応 · 750問収録</div>
+  </div>
+  <div class="subject-grid">
+    <div class="sbtn" onclick="startQuiz('math')"><span class="icon">🔢</span><span class="name">数学</span><span class="desc">正負の数・方程式・図形</span></div>
+    <div class="sbtn" onclick="startQuiz('english')"><span class="icon">🔤</span><span class="name">英語</span><span class="desc">be動詞・一般動詞・過去形</span></div>
+    <div class="sbtn" onclick="startQuiz('japanese')"><span class="icon">📖</span><span class="name">国語</span><span class="desc">品詞・古文・文学</span></div>
+    <div class="sbtn" onclick="startQuiz('science')"><span class="icon">🔬</span><span class="name">理科</span><span class="desc">植物・物質・光と力</span></div>
+    <div class="sbtn" onclick="startQuiz('social')"><span class="icon">🌏</span><span class="name">社会</span><span class="desc">地理・歴史</span></div>
+    <div class="sbtn all-btn" onclick="startQuiz('all')"><span class="icon">⭐</span><span class="name">ランダム全教科</span><span class="desc">5教科ミックス！全750問から出題</span></div>
+  </div>
+  <div class="settings">
+    <h3>📅 学期を選ぼう</h3>
+    <div class="btn-row">
+      <div class="tbtn active" onclick="setTerm('all',this)">全学期</div>
+      <div class="tbtn" onclick="setTerm('t1',this)">1学期</div>
+      <div class="tbtn" onclick="setTerm('t2',this)">2学期</div>
+      <div class="tbtn" onclick="setTerm('t3',this)">3学期</div>
+    </div>
+    <h3 style="margin-top:10px">⏱ 問題数を選ぼう</h3>
+    <div class="btn-row">
+      <div class="tbtn" onclick="setCount(10,this)">10問</div>
+      <div class="tbtn active" onclick="setCount(15,this)">15問</div>
+      <div class="tbtn" onclick="setCount(20,this)">20問</div>
+    </div>
+  </div>
+</div>
+
+<!-- クイズ -->
+<div id="quiz" class="screen">
+  <div class="quiz-header">
+    <button class="back-btn" onclick="goHome()">← もどる</button>
+    <span class="prog" id="prog">1/15</span>
+  </div>
+  <div class="timer-bar"><div class="timer-fill" id="tfill" style="width:100%"></div></div>
+  <span class="badge" id="badge">数学</span>
+  <div class="qcard">
+    <div class="qnum" id="qnum">問題 1</div>
+    <div class="qtext" id="qtext"></div>
+    <div class="qhint" id="qhint"></div>
+  </div>
+  <div class="choices" id="choices"></div>
+  <div class="result-box" id="rbox">
+    <div class="rlabel" id="rlabel"></div>
+    <div class="expl" id="expl"></div>
+    <div class="esbox" id="esbox"><div class="estitle">⭐ かんたん説明！</div><div class="estext" id="estext"></div></div>
+  </div>
+  <button class="next-btn" id="nbtn" onclick="next()">次の問題 →</button>
+</div>
+
+<!-- 結果 -->
+<div id="result" class="screen">
+  <div class="header"><h1>結果発表！</h1></div>
+  <div class="rcard">
+    <div class="score-circle">
+      <span class="snum" id="snum">0</span>
+      <span class="sdenom" id="sdenom">/15問</span>
+      <span class="spct" id="spct">0%</span>
+    </div>
+    <div class="rmsg" id="rmsg"></div>
+    <div class="rsub" id="rsub"></div>
+    <button class="rbtn restart" onclick="restartQuiz()">もう一度やる 🔄</button>
+    <button class="rbtn home" onclick="goHome()">教科えらびにもどる</button>
+  </div>
+</div>
+
+</div>
+<script>
+const sNames={math:'数学',english:'英語',japanese:'国語',science:'理科',social:'社会',all:'全教科'};
+const sCls={math:'math',english:'english',japanese:'japanese',science:'science',social:'social',all:'all-c'};
+let curSubj='',curQs=[],curIdx=0,score=0,qCount=15,term='all',answered=false,curChoices=[],curAns=0;
+
+function setTerm(t,el){term=t;document.querySelectorAll('.btn-row:first-of-type .tbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active')}
+function setCount(n,el){qCount=n;document.querySelectorAll('.btn-row:last-of-type .tbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active')}
+function shuffle(a){return[...a].sort(()=>Math.random()-.5)}
+
+function getPool(subj,t){
+  const Q=window.Q||{};
+  if(subj==='all'){
+    let all=[];
+    ['math','english','japanese','science','social'].forEach(s=>{
+      if(!Q[s])return;
+      if(t==='all'){['t1','t2','t3'].forEach(tk=>{if(Q[s][tk])Q[s][tk].forEach(q=>all.push({...q,subj:s}))})}
+      else{if(Q[s][t])Q[s][t].forEach(q=>all.push({...q,subj:s}))}
+    });
+    return all;
+  }
+  if(!Q[subj])return[];
+  if(t==='all'){let a=[];['t1','t2','t3'].forEach(tk=>{if(Q[subj][tk])a=a.concat(Q[subj][tk].map(q=>({...q,subj})))});return a;}
+  return Q[subj][t]?Q[subj][t].map(q=>({...q,subj})):[];
+}
+
+function startQuiz(subj){
+  curSubj=subj;curIdx=0;score=0;
+  const pool=getPool(subj,term);
+  if(!pool.length){alert('問題データを読み込み中です。少し待ってから再試行してください。');return;}
+  curQs=shuffle(pool).slice(0,qCount);
+  show('quiz');showQ();
+}
+
+function show(id){['home','quiz','result'].forEach(i=>document.getElementById(i).style.display=i===id?'block':'none')}
+function goHome(){show('home')}
+
+function showQ(){
+  answered=false;
+  const q=curQs[curIdx];
+  document.getElementById('prog').textContent=`${curIdx+1}/${curQs.length}`;
+  document.getElementById('qnum').textContent=`問題 ${curIdx+1}`;
+  document.getElementById('qtext').textContent=q.q;
+  document.getElementById('qhint').textContent=q.h?`💡 ${q.h}`:'';
+  const badge=document.getElementById('badge');
+  badge.textContent=sNames[q.subj||curSubj];
+  badge.className='badge '+(sCls[q.subj||curSubj]||'');
+  const tf=document.getElementById('tfill');
+  tf.style.transition='none';tf.style.width='100%';
+  setTimeout(()=>{tf.style.transition='width 30s linear';tf.style.width='0%'},100);
+  const ch=document.getElementById('choices');ch.innerHTML='';
+  const sidx=[...Array(q.c.length).keys()].sort(()=>Math.random()-.5);
+  curChoices=sidx.map(i=>q.c[i]);
+  curAns=sidx.indexOf(q.a);
+  curChoices.forEach((txt,i)=>{
+    const b=document.createElement('button');
+    b.className='cbtn';b.textContent=txt;
+    b.onclick=()=>checkAns(i,q);ch.appendChild(b);
+  });
+  document.getElementById('rbox').className='result-box';
+  document.getElementById('nbtn').className='next-btn';
+}
+
+function checkAns(idx,q){
+  if(answered)return;answered=true;
+  const ok=idx===curAns;
+  if(ok)score++;
+  document.querySelectorAll('.cbtn').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===curAns)b.classList.add('show-ok');
+    if(i===idx&&!ok)b.classList.add('wrong');
+    if(i===idx&&ok)b.classList.add('correct');
+  });
+  const rb=document.getElementById('rbox');rb.className='result-box show';
+  const rl=document.getElementById('rlabel');
+  rl.className='rlabel '+(ok?'ok':'ng');
+  rl.textContent=ok?'⭕ 正解！':`❌ 不正解… 正解は「${curChoices[curAns]}」`;
+  document.getElementById('expl').textContent=q.e||'';
+  const esbox=document.getElementById('esbox');
+  if(!ok&&q.es){esbox.className='esbox show';document.getElementById('estext').textContent=q.es;}
+  else{esbox.className='esbox';}
+  const nb=document.getElementById('nbtn');nb.className='next-btn show';
+  nb.textContent=curIdx>=curQs.length-1?'結果を見る 🎉':'次の問題 →';
+}
+
+function next(){
+  curIdx++;
+  if(curIdx>=curQs.length)showResult();
+  else showQ();
+}
+
+function showResult(){
+  show('result');
+  const tot=curQs.length,pct=Math.round(score/tot*100);
+  document.getElementById('snum').textContent=score;
+  document.getElementById('sdenom').textContent=`/${tot}問`;
+  document.getElementById('spct').textContent=`${pct}%`;
+  let msg,sub;
+  if(pct===100){msg='完璧！！🌟';sub='全問正解！すごすぎる！\nこの調子でどんどん進もう！'}
+  else if(pct>=80){msg='すごい！🎉';sub=`惜しい！あと${tot-score}問だったよ。\n間違えた問題を復習しよう！`}
+  else if(pct>=60){msg='もう少し！💪';sub='半分以上正解！あと一息。\n苦手な問題を見直してみよう！'}
+  else if(pct>=40){msg='まだまだこれから！📚';sub='難しかったね。でも大丈夫！\nもう一回チャレンジしてみよう！'}
+  else{msg='いっしょに復習しよう！🤝';sub='難しい問題が多かったね。\n解説を読んでもう一度やってみよう！'}
+  document.getElementById('rmsg').textContent=msg;
+  document.getElementById('rsub').textContent=sub;
+}
+
+function restartQuiz(){startQuiz(curSubj)}
+</script>
+</body>
+</html>
